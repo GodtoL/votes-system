@@ -1,20 +1,14 @@
 const express = require('express')
-const router = express.Router() 
+const router = express.Router()
+const topicController = require('../controllers/topicController.js');
 
-router.get('/', (req, res) => {
-    res.json({msg: 'Consulta de temas'})
-})
+router.get('/', topicController.get)
 
-router.post('/', (req, res) => {
-    res.json({msg: 'Crear un tema'})
-})
+router.post('/', topicController.insert)
 
-router.put('/', (req, res) => {
-    res.json({msg: 'Actualizar tema'})
-})
-
-router.delete('/', (req, res) => {
-    res.json({msg : "Borrar tema"})
-})
+router.route("/:id")
+    .get(topicController.getDetail)
+    .put(topicController.update)
+    .delete(topicController.delete)
 
 module.exports = router
