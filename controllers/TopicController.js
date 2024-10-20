@@ -10,13 +10,27 @@ class TopicController {
         try{
             const topics = await Topic.findAll()
             res.status(200).json(topics)
-            
+
         } catch(err){
             console.log("Error al conseguir los datos")
             res.status(500).json({ message : 'Error al traer los datos'})
         }
         }
 
+    getTopVotedTopics = async (req, res) => {
+        try {
+            const topics = await Topic.findAll({
+                order: [['votes', 'DESC']], 
+                limit: 3 
+            });
+            //console.log("Los topics son",topics)
+            return topics
+        } catch (err) {
+            console.error("No se pudo obtener los temas más votados", err)
+            return []
+        }
+    };
+        
     getDetail = async(req,res) =>{
         const topicId = req.params.id
 
