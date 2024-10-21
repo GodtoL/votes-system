@@ -10,5 +10,6 @@ router.route("/:id")
     .get(topicController.getDetail)
     .put(topicController.update)
     .delete(topicController.delete)
+    .patch(topicController.voteCount)
 
 module.exports = router

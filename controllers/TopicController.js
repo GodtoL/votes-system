@@ -1,3 +1,4 @@
+const sequelize = require('../database/conexion.js')
 const db = require('../database/conexion.js')
 const Topic = require('../models/TopicModel.js')
 
@@ -17,6 +18,14 @@ class TopicController {
         }
         }
 
+    getAllTopics = async (req, res) => {
+        try {
+            const topics = await Topic.findAll()
+            return topics
+        } catch (err){
+            console.error("Hubo error en GetAllTopics", err)
+        }
+    }
     getTopVotedTopics = async (req, res) => {
         try {
             const topics = await Topic.findAll({
@@ -49,6 +58,28 @@ class TopicController {
             res.status(500).json({message: "Error al intentar traer el tema"})
         }
     }
+
+    voteCount = async (req, res) => {
+        try {
+            const topicId = req.params.id;
+            
+            const updateTopic = await Topic.update(
+                { votes: sequelize.literal('votes + 1') }, 
+                { where: { id: topicId } } 
+            );
+    
+            // Verifica si el tema fue encontrado y actualizado
+            if (updateTopic[0] > 0) {
+                res.status(200).json({ message: 'Tema actualizado exitosamente' });
+            } else {
+                res.status(404).json({ message: 'No se encontró el tema', topicId });
+            }
+        } catch (err) {
+            console.error('Error al votar:', err);
+            res.status(500).json({ message: 'Error en el servidor' });
+        }
+    };
+    
 
     insert = async(req,res) =>{
     try{
