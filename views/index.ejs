@@ -8,15 +8,24 @@
 <body>
     <div class="container">
         <div class="voting-section">
-            <h2>Crear un nuevo tema</h2>
+            <h2>Crear un nuevo videojuego</h2>
             <form id="create-topic-form">
-                <label for="topic-title">Tema:</label>
+                <label for="topic-title">Titulo:</label>
                 <input type="text" id="topic-title" name="topic-title" required>
                 <label for="topic-content">Contenido:</label>
                 <textarea id="topic-content" name="topic-content" required></textarea>
-                <button type="submit">Crear Tema</button>
+                <button type="submit">Crear videojuego</button>
             </form>
-            <h2>Top videogames</h2>
+            <form id="update-topic-form" style="display:none;">
+                <h2>Actualizar videojuego</h2>
+                <label for="update-topic-title">Actualizar Tema:</label>
+                <input type="text" id="update-topic-title" name="update-topic-title" required>
+                <label for="update-topic-content">Contenido:</label>
+                <textarea id="update-topic-content" name="update-topic-content" required></textarea>
+                <input type="hidden" id="update-topic-id" name="update-topic-id">
+                <button type="submit">Actualizar Tema</button>
+            </form>
+            <h2>Videojuegos más votados (Top 3)</h2>
             <% if (topTopics && topTopics.length > 0) { %>
                 <ol>
                     <% topTopics.forEach(topic => { %>
@@ -26,16 +35,49 @@
             <% } else { %>
                 <p>No topics available.</p>
             <% } %>
-            <h2>All Topics</h2>
+            <h2>Todos los videojuegos</h2>
             <ul>
                 <% topics.forEach(topic => { %>
                     <li>
                         <%= topic.title %> - <span id="vote-count-<%= topic.id %>"><%= topic.votes %></span> votos
-                        <button onclick="voteForTopic(<%= topic.id %>)">Vote</button>
+                        <button onclick="voteForTopic(<%= topic.id %>)">Votar</button>
+                        <button onclick="showUpdateForm(<%= topic.id %>, '<%= topic.title %>', '<%= topic.content %>')">Actualizar</button>
+                        <button onclick="deleteTopic(<%= topic.id %>, '<%= topic.title %>', '<%= topic.content %>')">Borrar</button>
                     </li>
                 <% }); %>
             </ul>
+            
             <script>
+                async function deleteTopic(topicId) 
+                {
+                    try{
+                        const response = await fetch(`/topic/${topicId}`,{
+                            method: 'DELETE',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            }})
+                            if (response.ok) {
+                                const result = await response.json();
+                                console.log(result.message);
+
+                                // Eliminar el elemento del DOM que representa el topic
+                                const topicElem = document.getElementById(`topic-${topicId}`);
+                                if (topicElem) {
+                                    topicElem.remove()
+                                    
+                                }
+
+                                alert("El topic fue eliminado exitosamente");
+                                window.location.reload()
+                            } else {
+                                console.error("Error al eliminar el topic");
+                                alert("Hubo un problema al intentar eliminar el topic");
+                            }
+                    } catch (err){
+                        console.log("ERROR", err)
+                    }
+                    
+                }
                 async function voteForTopic(topicId) {
                     try{
                         console.log("el topicId es: ", topicId)
@@ -53,6 +95,7 @@
                             voteCountElem.textContent = parseInt(voteCountElem.textContent) + 1
 
                             alert("voto registrado exitosamente")
+                            window.location.reload();
                         } else {
                             const error = await response.json()
                             console.log(error.message)
@@ -62,6 +105,83 @@
                         console.log("Ocurrio un problema al intentar votar ", err)
                     }              
                 }
+
+                function showUpdateForm(id, title, content) {
+                    document.getElementById('update-topic-title').value = title;
+                    document.getElementById('update-topic-content').value = content;
+                    document.getElementById('update-topic-id').value = id;
+
+                    document.getElementById('update-topic-form').style.display = 'block';
+                }
+
+
+                document.getElementById('update-topic-form').addEventListener('submit', function(event){
+                    event.preventDefault()
+
+                    const id = document.getElementById('update-topic-id').value;
+                    const title = document.getElementById('update-topic-title').value;
+                    const content = document.getElementById('update-topic-content').value;
+
+                    updateTopic(id, title, content);
+                })
+
+                function updateTopic(topicId, title, content) {
+                        fetch(`/topic/${topicId}`, {
+                            method: 'PUT',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify({ title, content})
+                            })
+                           .then(response => {
+                                if (!response.ok) {
+                                    throw new Error(`HTTP error! Status: ${response.status}`);
+                                }
+                                return response.json();
+                            })
+                            .then(data => {
+                                console.log("Se actualizó el tema:", data);
+                                window.location.reload();
+                                // Aquí puedes limpiar el formulario o actualizar la lista de temas
+                                resetUpdateForm();
+                            })
+                            .catch((err) => {
+                                console.log("Hubo un error al actualizar el tema:", err);
+                            });
+                        }
+
+                function resetUpdateForm() {
+                    document.getElementById('update-topic-title').value = '';
+                    document.getElementById('update-topic-content').value = '';
+                    document.getElementById('update-topic-id').value = ''; // Limpia el ID al finalizar
+                    document.getElementById('update-topic-form').style.display = 'none'; // Oculta el formulario de actualización
+                    document.getElementById('create-topic-form').style.display = 'block'; // Vuelve a mostrar el formulario de creación
+                }
+
+                document.getElementById('create-topic-form').addEventListener('submit', handleFormSubmit);
+                function handleFormSubmit(event) {
+                    event.preventDefault(); 
+
+                    const title = document.getElementById('topic-title').value;
+                    const content = document.getElementById('topic-content').value;
+
+                    fetch('http://localhost:6500/topic', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json' 
+                        },
+                        body: JSON.stringify({ title, content}) 
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        window.location.reload()
+                        console.log("Se creó el tema:", data);
+                    })
+                    .catch((err) => {
+                        console.log("Hubo un error al crear el nuevo tema:", err);
+                    });
+                }
+
             </script>            
         </div> 
 </body>
