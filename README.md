@@ -1,6 +1,6 @@
 # Sistema de Votación
 
-Este proyecto es una aplicación CRUD para la gestión de votaciones. Permite a los usuarios agregar, eliminar y actualizar votos en una base de datos a través de una interfaz web. La aplicación fue desarrollada usando Node.js, Express, y Sequelize para la manipulación de datos.
+Este proyecto es una aplicación CRUD para la gestión de votaciones. Permite a los usuarios agregar, eliminar  y actualizar votos en una base de datos a través de una interfaz web. La aplicación fue desarrollada usando Node.js, Express, y Sequelize para la manipulación de datos.
 
 ## Características
 
